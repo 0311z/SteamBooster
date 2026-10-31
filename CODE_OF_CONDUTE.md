@@ -16,19 +16,19 @@ diverse, inclusive, and healthy community.
 
 Examples of behavior that contributes to a positive environment:
 
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
+- Using welcoming and inclusive language
+- Being respectful of differing viewpoints and experiences
+- Gracefully accepting constructive criticism
+- Focusing on what is best for the community
+- Showing empathy towards other community members
 
 Examples of unacceptable behavior:
 
-* The use of sexualized language or imagery
-* Trolling, insulting or derogatory comments, and personal attacks
-* Public or private harassment
-* Publishing others' private information without explicit permission
-* Other conduct which could reasonably be considered inappropriate
+- The use of sexualized language or imagery
+- Trolling, insulting or derogatory comments, and personal attacks
+- Public or private harassment
+- Publishing others' private information without explicit permission
+- Other conduct which could reasonably be considered inappropriate
 
 ## Enforcement Responsibilities
 
@@ -55,18 +55,22 @@ All complaints will be reviewed and investigated promptly and fairly.
 Community leaders will follow these Community Impact Guidelines:
 
 ### 1. Correction
+
 **Impact**: Minor inappropriate behavior
 **Consequence**: Private warning and clarification
 
 ### 2. Warning
+
 **Impact**: Violation through single incident or series
 **Consequence**: Warning with consequences for continued behavior
 
 ### 3. Temporary Ban
+
 **Impact**: Serious violation
 **Consequence**: Temporary ban from community
 
 ### 4. Permanent Ban
+
 **Impact**: Sustained inappropriate behavior
 **Consequence**: Permanent ban from community
 

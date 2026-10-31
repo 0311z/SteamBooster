@@ -6,6 +6,8 @@
     "invisible": true,
     "gamesAndStatus": [730, 440, 570],
     "replyMessage": "AFK - Boosting hours",
-    "saveMessages": true
+    "saveMessages": true,
+    "rotationMinutes": 0,
+    "sessionDurationMinutes": 0
   }
 ]

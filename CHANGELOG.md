@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
+
 - WebUI dashboard
 - Multi-language support
 - Advanced statistics graphs
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.0] - 2025-11-23
 
 ### Added
+
 - **Security**: Credential encryption with AES-256-GCM
 - **Security**: Input validation and sanitization
 - **Security**: Prototype pollution protection
@@ -35,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docs**: BUGFIXES.md with all resolved issues
 
 ### Changed
+
 - Complete architecture rewrite
 - Improved error handling throughout
 - Better logging with structured format
@@ -42,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimized concurrency for multiple accounts
 
 ### Fixed
+
 - **UI**: ASCII table now supports 9+ items with pagination
 - **UI**: Long usernames (30+ chars) display correctly with truncation
 - **UI**: Random "?" characters replaced with ASCII equivalents
@@ -54,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Encoding**: UTF-8 encoding issues resolved
 
 ### Security
+
 - Dependency updates and vulnerability fixes
 - Secure file permissions enforcement
 - Secrets removed from code
@@ -62,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2025-11-20
 
 ### Added
+
 - Multi-account support
 - 2FA/Steam Guard support
 - Statistics tracking
@@ -69,17 +75,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-reply feature
 
 ### Changed
+
 - Migrated to JSON configuration
 - Improved error messages
 - Better Steam API handling
 
 ### Fixed
+
 - Login timeout issues
 - Configuration loading bugs
 
 ## [1.0.0] - 2025-11-18
 
 ### Added
+
 - Initial release
 - Basic hour boosting functionality
 - Single account support
@@ -94,7 +103,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Patch** (0.0.X): Bug fixes
 
 ## Links
-
 
 - [Compare v3...pre-release](https://github.com/stolenact/vaporbooster/compare/v3...pre-release)
 - [Compare v2...pre-release](https://github.com/stolenact/vaporbooster/compare/v2...pre-release)

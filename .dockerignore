@@ -1,0 +1,13 @@
+**
+!Dockerfile
+!package.json
+!package-lock.json
+!src/
+!src/**
+!utils/
+!utils/**
+!config/
+!config/accounts.example.json
+!config/settings.example.json
+!scripts/
+!scripts/**

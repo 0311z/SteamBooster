@@ -1,0 +1,21 @@
+services:
+  steambooster:
+    build: .
+    init: true
+    restart: on-failure:3
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp
+    volumes:
+      - ./config:/app/config
+      - session-data:/app/data
+      - steam-data:/app/accounts_data
+      - logs:/app/logs
+      - messages:/app/messages
+volumes:
+  session-data:
+  steam-data:
+  logs:
+  messages:
