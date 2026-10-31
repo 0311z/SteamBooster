@@ -584,10 +584,15 @@ class SteamBooster {
       let timer = new Timer();
       let loggedIn = false;
       let settled = false;
+      let loginTimeout;
       const finish = (ok, msg) => {
         if (settled) return; settled = true;
-        if (timer) { try { timer.stop(); } catch {} }
-        if (!ok) { this.accountErrors.set(accName, msg || 'failed'); this.accountStates.set(accName, 'error'); }
+        clearTimeout(loginTimeout);
+        if (!ok) {
+          if (timer) { try { timer.stop(); } catch {} }
+          try { client && client.logOff(); } catch {}
+          this.accountErrors.set(accName, msg || 'failed'); this.accountStates.set(accName, 'error');
+        }
         else { this.accountStates.set(accName, 'active'); this.accountErrors.delete(accName); }
         resolve(ok);
       };
@@ -616,10 +621,6 @@ class SteamBooster {
           if (k) o.refreshToken = k;
         }
         return o;
-      };
-
-      const armTimeout = (ms) => {
-        setTimeout(() => { if (!settled && Date.now() - startTs > MAX_TOTAL_MS) finish(false, 'Login timeout'); }, ms);
       };
 
       const doLogon = (opts) => {
@@ -673,7 +674,7 @@ class SteamBooster {
           const waitMs = left < 6 ? (left + 1) * 1000 : 0;
           setTimeout(() => {
             const code = freshTwoFactor();
-            if (code) { logger.info(`[${accName}] Auto code: ${code}`); callback(code); }
+            if (code) { logger.info(`[${accName}] Using automatic Steam Guard code`); callback(code); }
             else { const c2 = ui.question(`${c.yellow}Steam Guard code: ${c.reset}`).trim().toUpperCase(); callback(c2); }
           }, waitMs);
           return;
@@ -695,7 +696,6 @@ class SteamBooster {
         }
         const code = ui.question(`${c.yellow}Mobile code: ${c.reset}`).trim().toUpperCase();
         if (!/^[A-Z0-9]{5}$/.test(code)) { finish(false, 'Invalid code (5 letters/digits)'); return; }
-        armTimeout(150000);
         callback(code);
       });
 
@@ -704,6 +704,7 @@ class SteamBooster {
       });
 
       client.once('loggedOn', () => {
+        if (settled) return;
         loggedIn = true;
         const sid64 = (client.steamID && typeof client.steamID.getSteamID64 === 'function') ? client.steamID.getSteamID64() : '?';
         logger.success(`[${accName}] Logged in (SteamID ${sid64})`);
@@ -724,7 +725,8 @@ class SteamBooster {
       });
 
       client.on('error', (err) => {
-        if (settled) return;
+        if (settled && !loggedIn) return;
+        if (loggedIn && this.clients.get(accName)?.client !== client) return;
         const code = err && err.eresult;
         const msg = this.getErrorMessage(err);
         logger.error(`[${accName}] ${msg}`);
@@ -738,12 +740,12 @@ class SteamBooster {
           return;
         }
         if (loggedIn && code === 6) { this.enterKickedMode(account, accName); return; }
+        if (loggedIn) return;
         // pre-login handling
         if (code === 0 && rateAttempts < MAX_RATE) {
           rateAttempts++;
           const wait = Math.min(10000 * Math.pow(2, rateAttempts - 1), 60000);
           logger.warn(`[${accName}] No connection to Steam, retrying in ${Math.round(wait / 1000)}s (attempt ${rateAttempts}/${MAX_RATE})...`);
-          armTimeout(wait + 150000);
           setTimeout(() => { if (!settled) doLogon(buildOpts()); }, wait);
           return;
         }
@@ -751,7 +753,6 @@ class SteamBooster {
           rateAttempts++;
           const wait = Math.min(45000 * Math.pow(2, rateAttempts - 1), 300000);
           logger.warn(`[${accName}] Rate limited, retrying in ${Math.round(wait / 1000)}s (attempt ${rateAttempts}/${MAX_RATE})...`);
-          armTimeout(wait + 150000);
           setTimeout(() => { if (!settled) doLogon(buildOpts()); }, wait);
           return;
         }
@@ -777,6 +778,8 @@ class SteamBooster {
       client.once('disconnected', (eresult, _msg) => {
         if (settled && !loggedIn) return;
         if (loggedIn) {
+          if (this.clients.get(accName)?.client !== client) return;
+          if (eresult === 6) { this.enterKickedMode(account, accName); return; }
           logger.warn(`[${accName}] Disconnected (eresult ${eresult})`);
           this.accountStates.set(accName, 'disconnected');
           const data = this.clients.get(accName);
@@ -789,7 +792,7 @@ class SteamBooster {
             logger.info(`[${accName}] Reconnecting in 5s (attempt ${n}/${max})...`);
             setTimeout(() => { if (this.isBoosting) this.loginAccount(account); }, 5000);
           }
-        }
+        } else finish(false, `Disconnected before login (eresult ${eresult})`);
       });
 
       client.on('friendMessage', (sid, msg) => this.handleMessage(accName, sid, msg, client, account));
@@ -798,7 +801,7 @@ class SteamBooster {
         try { logger.info(`[${accName}] Wallet: ${balance} (currency ${currency})`); } catch {}
       });
 
-      armTimeout(150000);
+      loginTimeout = setTimeout(() => finish(false, 'Login timeout'), MAX_TOTAL_MS);
       doLogon(buildOpts());
     });
   }
@@ -828,11 +831,14 @@ class SteamBooster {
 }
 
 const app = new SteamBooster();
+if (require.main === module) {
 app.init().catch(err => { try { logger.error(`Fatal: ${err && err.message}`); } catch {} console.error(`${c.red}Fatal: ${err.message}${c.reset}`); console.error(err.stack); process.exit(1); });
 process.on('SIGINT', () => app.gracefulExit());
 process.on('SIGTERM', () => { try { logger.error('Got SIGTERM, shutting down'); } catch {} app.gracefulExit(); });
 process.on('uncaughtException', err => { try { logger.error(`Uncaught: ${err && err.stack || err && err.message}`); } catch {} try { console.error(`${c.red}Uncaught: ${err && err.stack || err && err.message}${c.reset}`); } catch {} app.gracefulExit(); });
 process.on('unhandledRejection', r => { try { logger.error(`Unhandled rejection: ${r && (r.stack || r.message || r)}`); } catch {} try { console.error(`${c.red}Unhandled rejection: ${r}${c.reset}`); } catch {} });
 process.on('exit', (code) => { try { singleInstance.release(); } catch {} try { fs.appendFileSync(path.join(ROOT, 'logs', `steam_${new Date().toISOString().slice(0, 10)}.log`), `[${new Date().toLocaleString('sv-SE')}] [EXIT] code ${code}\n`); } catch {} });
+}
 
 module.exports = app;
+module.exports.SteamBooster = SteamBooster;
