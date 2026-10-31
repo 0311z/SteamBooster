@@ -224,7 +224,39 @@ The duration limit logs the account off and marks it `completed`, without schedu
 
 The optional local `/status` monitor includes each active account's current games, batch number, batch count, elapsed seconds and remaining seconds (`null` when unlimited), under `session`. No password or token is included.
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:c58d585bbb6e323c387bf698f92451666838ba27b75846bf8299dda2f54c4dc7 -->
+
+## Docker
+
+Prepare `config/accounts.json` and complete Steam Guard locally with `npm start` first. The `config` directory must be writable by container UID 1000 so refresh tokens can be saved. Protect it from other users. Then run:
+
+```bash
+docker compose up --build -d
+docker compose logs -f
+docker compose down
+```
+
+The container runs as a non-root user with a read-only root filesystem, dropped capabilities and a process health check. Config, Steam session data, lock data, logs and messages persist in mounted directories or volumes. No secrets are copied into the image. The monitor remains bound to loopback inside the container and is not published. The health check reports process liveness, not authentication or credited playtime. Docker requires an already configured account; it cannot answer interactive Steam Guard prompts.
+
+## Verify a real Steam login
+
+After an interactive login saves a refresh token, run:
+
+```bash
+npm run verify:steam -- YOUR_ACCOUNT_NAME
+```
+
+The verifier authenticates with the saved token, starts no games, and logs off. Exit status: 0 = authenticated; 1 = failure or timeout; 2 = missing saved token. A successful login does not prove Steam credited playtime. Never share your password, token, shared secret or Guard codes.
+
+## Dependency maintenance
+
+Scoped overrides replace Steam's transitive ZIP and app-ticket dependencies with patched versions. Glob, minimatch and deepmerge are pinned for the development dependency tree. Compatibility tests exercise Steam CDN ZIP decoding and app-ticket parsing. Recheck the overrides when upgrading Steam libraries. Development tools require Node 20.19+, 22.13+ or 24+; the Docker image uses Node 24.
+
 ## Development
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 <!-- /coderabbit-ai-generated:v1 -->
 

@@ -360,8 +360,8 @@ class SteamBooster {
     logger.info(
       `[${name}] Checking if you are still playing (anonymous lookup, no kick)...`,
     );
-    let presence = null,
-      stage = "unknown";
+    let presence;
+    let stage = "unknown";
     const ownGameIds =
       entry.account && Array.isArray(entry.account.gamesAndStatus)
         ? entry.account.gamesAndStatus.filter((g) => typeof g === "number")
