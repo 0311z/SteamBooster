@@ -1,0 +1,49 @@
+SteamBooster v3.3.0 - definitive release
+
+Summary
+-------
+Hardened SteamBooster into a robust, self-hosted, auto-starting Steam hour
+booster and resolved every known issue reported across the related repos
+(DrWarpMan/steam-hour-booster, valnssh, user28111999/steam-booster)
+plus the 6 pre-release bugs from the original project.
+
+Login and sessions
+- Real Steam Guard login: email code, mobile TOTP auto-generated from shared
+  secret, and 1-click app approval via steam-session.
+- Refresh-token persistence: first good login saves the token; later logins
+  need no password or Guard.
+- Handles eresult 27 (expired token), 0/3 (NoConnection), 84/87 (rate limit),
+  6 (kicked / LoggedInElsewhere).
+- Passwords up to 256 chars (warns above 64); usernames may be emails.
+
+Boosting
+- Multi-account, invisible mode, custom status + game IDs (status separated
+  from AppIDs so every game counts).
+- Warns when more than ~32 games are configured.
+
+Session watchdog
+- Local health tick every 5 min (zero Steam traffic).
+- Kick-aware: stops the clock and stands down instead of fighting you.
+- Anonymous presence probe (cannot kick you) with backoff 15/30/60/120 min.
+- Blind re-login after 3 unknown probes; auto-resume when you finish.
+- Self-pausing fix: ignores the bot's own idled AppIDs when probing.
+
+UI and tooling
+- Pure ASCII UI, pagination for 9+ accounts, truncation for long names.
+- Statistics dashboard (session + lifetime + per account).
+- Settings menu including monitor port.
+- CLI flags: --auto, --account NAME, --status, --stop, --help.
+- Optional local HTTP monitor: GET /status returns JSON (off by default).
+- Single-instance lock with heartbeat (data/steam.lock).
+- Auto-start hidden on boot (VBS + Startup shortcut, no window).
+
+Tests
+- 19 tests passing (valitador, rateLimiter, singleInstance, sessionWatch,
+  monitor). eslint clean.
+
+Notes for reviewers
+- Do NOT run `npm audit fix --force`: it downgrades steam-user to 3.15.0 and
+  breaks the v5 API.
+- Personal data (accounts.json, settings.json, refreshTokens.json, logs/,
+  messages/, accounts_data/, data/steam.lock) is gitignored. Use the
+  *.example.json templates.
