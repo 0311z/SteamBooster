@@ -1448,36 +1448,46 @@ class SteamBooster {
         finish(true);
       });
 
+      const endSession = (shouldReconnect) => {
+        const data = this.clients.get(accName);
+        if (!data || data.client !== client) return;
+        data.timer?.stop();
+        data.playSession?.stop();
+        this.clients.delete(accName);
+        this.accountStates.set(accName, "disconnected");
+        const n = (this.reconnects.get(accName) || 0) + 1;
+        const max = Number.isInteger(settings.maxReconnectAttempts)
+          ? settings.maxReconnectAttempts
+          : 5;
+        if (shouldReconnect && settings.autoReconnect && n <= max) {
+          this.reconnects.set(accName, n);
+          logger.info(
+            `[${accName}] Reconnecting in 5s (attempt ${n}/${max})...`,
+          );
+          setTimeout(() => {
+            if (this.isBoosting) this.loginAccount(account);
+          }, 5000);
+        }
+      };
+
       client.on("error", (err) => {
         if (settled && !loggedIn) return;
         if (loggedIn && this.clients.get(accName)?.client !== client) return;
         const code = err && err.eresult;
         const msg = this.getErrorMessage(err);
         logger.error(`[${accName}] ${msg}`);
-        if (loggedIn && (code === 0 || code === 27)) {
+        if (loggedIn) {
+          if (code === 6) {
+            this.enterKickedMode(account, accName);
+            return;
+          }
           if (code === 27) {
             logger.warn(`[${accName}] Session expired, clearing token...`);
             config.clearRefreshToken(accName);
-            mode = "password";
-          } else
-            logger.warn(
-              `[${accName}] Connection dropped (NoConnection), will retry...`,
-            );
-          this.accountStates.set(accName, "disconnected");
-          const dd = this.clients.get(accName);
-          if (dd && dd.timer) dd.timer.stop();
-          dd?.playSession?.stop();
-          this.clients.delete(accName);
-          setTimeout(() => {
-            if (this.isBoosting) this.loginAccount(account);
-          }, 5000);
+          }
+          endSession(code === 0 || code === 3 || code === 27);
           return;
         }
-        if (loggedIn && code === 6) {
-          this.enterKickedMode(account, accName);
-          return;
-        }
-        if (loggedIn) return;
         // pre-login handling
         if (code === 0 && rateAttempts < MAX_RATE) {
           rateAttempts++;
@@ -1531,24 +1541,7 @@ class SteamBooster {
             return;
           }
           logger.warn(`[${accName}] Disconnected (eresult ${eresult})`);
-          this.accountStates.set(accName, "disconnected");
-          const data = this.clients.get(accName);
-          if (data && data.timer) data.timer.stop();
-          data?.playSession?.stop();
-          this.clients.delete(accName);
-          const n = (this.reconnects.get(accName) || 0) + 1;
-          const max = Number.isInteger(settings.maxReconnectAttempts)
-            ? settings.maxReconnectAttempts
-            : 5;
-          if (n <= max && settings.autoReconnect) {
-            this.reconnects.set(accName, n);
-            logger.info(
-              `[${accName}] Reconnecting in 5s (attempt ${n}/${max})...`,
-            );
-            setTimeout(() => {
-              if (this.isBoosting) this.loginAccount(account);
-            }, 5000);
-          }
+          endSession(true);
         } else finish(false, `Disconnected before login (eresult ${eresult})`);
       });
 

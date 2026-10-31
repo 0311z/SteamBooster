@@ -27,7 +27,10 @@ jest.mock("easytimer.js", () => ({
   },
 }));
 jest.mock("../utils/configManager", () => ({
-  loadSettings: () => ({ autoReconnect: true, maxReconnectAttempts: 5 }),
+  loadSettings: jest.fn(() => ({
+    autoReconnect: true,
+    maxReconnectAttempts: 5,
+  })),
   getRefreshToken: jest.fn(() => null),
   clearRefreshToken: jest.fn(),
   saveRefreshToken: jest.fn(),
@@ -79,6 +82,10 @@ beforeEach(() => {
   LoginSession.instances.length = 0;
   jest.clearAllMocks();
   config.getRefreshToken.mockReturnValue(null);
+  config.loadSettings.mockReturnValue({
+    autoReconnect: true,
+    maxReconnectAttempts: 5,
+  });
 });
 afterEach(() => {
   jest.clearAllTimers();
@@ -259,5 +266,57 @@ test("duration completion logs off without automatically reconnecting", async ()
   expect(booster.accountStates.get(account.username)).toBe("completed");
   client.emit("disconnected", 0);
   jest.advanceTimersByTime(5000);
+  expect(SteamUser.instances).toHaveLength(1);
+});
+
+test.each([0, 27])("error %s respects disabled autoReconnect", async (code) => {
+  config.loadSettings.mockReturnValue({
+    autoReconnect: false,
+    maxReconnectAttempts: 5,
+  });
+  const booster = new SteamBooster();
+  booster.isBoosting = true;
+  const result = booster.loginAccount(account);
+  const client = SteamUser.instances[0];
+  client.emit("loggedOn");
+  await result;
+  const timer = booster.clients.get(account.username).timer;
+  client.emit("error", { eresult: code });
+  client.emit("disconnected", code);
+  jest.advanceTimersByTime(10000);
+  expect(timer.stop).toHaveBeenCalledTimes(1);
+  expect(booster.accountStates.get(account.username)).toBe("disconnected");
+  expect(SteamUser.instances).toHaveLength(1);
+});
+
+test("fatal post-login error stops the session without retrying", async () => {
+  const booster = new SteamBooster();
+  booster.isBoosting = true;
+  const result = booster.loginAccount(account);
+  const client = SteamUser.instances[0];
+  client.emit("loggedOn");
+  await result;
+  const timer = booster.clients.get(account.username).timer;
+  client.emit("error", { eresult: 15 });
+  jest.advanceTimersByTime(60000);
+  expect(timer.stop).toHaveBeenCalledTimes(1);
+  expect(booster.clients.has(account.username)).toBe(false);
+  expect(booster.accountStates.get(account.username)).toBe("disconnected");
+  expect(SteamUser.instances).toHaveLength(1);
+});
+
+test("connection error respects maximum reconnect attempts", async () => {
+  config.loadSettings.mockReturnValue({
+    autoReconnect: true,
+    maxReconnectAttempts: 0,
+  });
+  const booster = new SteamBooster();
+  booster.isBoosting = true;
+  const result = booster.loginAccount(account);
+  const client = SteamUser.instances[0];
+  client.emit("loggedOn");
+  await result;
+  client.emit("error", { eresult: 0 });
+  jest.advanceTimersByTime(10000);
   expect(SteamUser.instances).toHaveLength(1);
 });
