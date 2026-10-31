@@ -1,0 +1,10 @@
+{
+  "autoReconnect": true,
+  "invisibleMode": false,
+  "saveMessages": true,
+  "debug": false,
+  "startupDelay": 2000,
+  "maxReconnectAttempts": 5,
+  "resumeWhenIdle": true,
+  "monitorPort": 0
+}

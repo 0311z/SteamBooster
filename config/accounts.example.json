@@ -1,0 +1,11 @@
+[
+  {
+    "username": "your_steam_username",
+    "password": "your_steam_password",
+    "sharedSecret": "",
+    "invisible": true,
+    "gamesAndStatus": [730, 440, 570],
+    "replyMessage": "AFK - Boosting hours",
+    "saveMessages": true
+  }
+]

@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+node_modules.corrupt/
+
+# Sensitive data - NEVER COMMIT
+config/accounts.json
+config/settings.json
+config/refreshTokens.json
+
+# Example templates (keep these committed)
+!config/accounts.example.json
+!config/settings.example.json
+
+# Session data
+accounts_data/
+
+# Logs
+logs/
+*.log
+
+# Messages
+messages/
+
+# PM2
+.pm2/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+dist/
+build/
+
+# Misc
+*.tgz
+*.bak
+*.tmp
+
+# Single-instance lock
+data/steam.lock

@@ -1,0 +1,89 @@
+{
+  "name": "steambooster",
+  "version": "3.3.0",
+  "description": "Advanced Steam Hour Booster - Secure, production-ready with encryption, rate limiting, and comprehensive monitoring",
+  "type": "commonjs",
+  "main": "src/accountHandler.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0311z/SteamBooster.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0311z/SteamBooster/issues"
+  },
+  "homepage": "https://github.com/0311z/SteamBooster#readme",
+  "keywords": [
+    "steam",
+    "booster",
+    "hours",
+    "gaming",
+    "idle",
+    "automation",
+    "2fa",
+    "invisible-mode"
+  ],
+  "author": "0311z",
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/accountHandler.js",
+    "dev": "node --watch src/accountHandler.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md}\"",
+    "security:audit": "npm audit --audit-level=moderate",
+    "clean:logs": "node -e \"require('fs').rmSync('logs',{recursive:true,force:true})\"",
+    "clean:data": "node -e \"require('fs').rmSync('accounts_data',{recursive:true,force:true})\"",
+    "validate": "npm run lint && npm test",
+    "precommit": "npm run lint:fix && npm run format",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "easytimer.js": "^4.6.0",
+    "readline-sync": "^1.4.10",
+    "steam-session": "^1.9.4",
+    "steam-totp": "^2.1.2",
+    "steam-user": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-security": "^2.1.1",
+    "husky": "^9.1.7",
+    "jest": "^30.0.0",
+    "lint-staged": "^15.5.0",
+    "prettier": "^3.5.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "./coverage",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "utils/**/*.js",
+      "!**/node_modules/**"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "modulePathIgnorePatterns": [
+      "node_modules\\.corrupt"
+    ]
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}
