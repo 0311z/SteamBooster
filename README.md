@@ -1,6 +1,6 @@
 # SteamBooster v3.3.0
 
-**STEAM BOOSTER  v3.3.0**
+**STEAM BOOSTER v3.3.0**
 
 > **Advanced Steam Hour Booster** with real Steam Guard login, refresh-token persistence, invisible mode, session watchdog with kick-aware auto-resume, and a local HTTP monitor. English UI.
 
@@ -18,6 +18,7 @@ This software is provided for **educational purposes only**. Using it **violates
 ## Features
 
 ### Security
+
 - Input validation (usernames, passwords, game IDs, settings)
 - Prototype-pollution safe config (JSON reviver strips `__proto__`/`constructor`/`prototype`)
 - Atomic writes for config files (`.tmp` + rename)
@@ -25,6 +26,7 @@ This software is provided for **educational purposes only**. Using it **violates
 - Rate limiting with exponential backoff (45s -> 90s -> 180s) and fresh 2FA per retry
 
 ### Login
+
 - Real Steam login with **Steam Guard**: email code, mobile TOTP (auto-generated from shared secret), and **1-click app approval** via `steam-session`
 - Refresh-token persistence: first good login saves the token; later logins need no password or Guard
 - Handles expired tokens (eresult 27), `NoConnection` (eresult 0/3), rate limits (84/87), kicked sessions (eresult 6)
@@ -32,6 +34,7 @@ This software is provided for **educational purposes only**. Using it **violates
 - Usernames may be email addresses (contains `@`)
 
 ### Boosting
+
 - Multi-account simultaneous boosting
 - Invisible mode (appear offline while boosting)
 - Custom status string + game IDs (status separated from AppIDs so all games count)
@@ -39,6 +42,7 @@ This software is provided for **educational purposes only**. Using it **violates
 - Warns when more than ~32 games are configured (Steam only counts the first ~32 per session)
 
 ### Session watchdog
+
 - Local health tick every 5 min (zero Steam traffic, never rate-limited)
 - On kick (`LoggedInElsewhere`): stops the clock, stands down instead of fighting you
 - Anonymous presence probe (cannot kick you) with backoff 15m -> 30m -> 60m -> 120m
@@ -48,6 +52,7 @@ This software is provided for **educational purposes only**. Using it **violates
 - Timers always stop on kick/disconnect (no fake hours)
 
 ### UI and tooling
+
 - Pure ASCII UI (no `?` glyphs), pagination for 9+ accounts, truncation for long names
 - Statistics dashboard (session + lifetime + per-account)
 - Settings menu (auto-reconnect, invisible, save messages, debug, startup delay, resume-when-idle, monitor port)
@@ -184,15 +189,15 @@ node src/accountHandler.js --help
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---|---|
-| `Another instance is already running` | Run `--status` then `--stop` |
-| `Invalid password` | Check credentials; try logging in on the Steam website first |
-| `Rate limited` (84/87) | Wait 30 min; increase `startupDelay` |
-| `Steam Guard required` | Add `sharedSecret`, use app approval, or enter the code manually |
-| `Session expired` (27) | Cleared automatically; re-enters with password |
-| UI looks broken | Terminal width >= 80 columns; UTF-8 console font |
-| Hours not showing | Wait; Steam updates playtime with delay |
+| Symptom                               | Fix                                                              |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| `Another instance is already running` | Run `--status` then `--stop`                                     |
+| `Invalid password`                    | Check credentials; try logging in on the Steam website first     |
+| `Rate limited` (84/87)                | Wait 30 min; increase `startupDelay`                             |
+| `Steam Guard required`                | Add `sharedSecret`, use app approval, or enter the code manually |
+| `Session expired` (27)                | Cleared automatically; re-enters with password                   |
+| UI looks broken                       | Terminal width >= 80 columns; UTF-8 console font                 |
+| Hours not showing                     | Wait; Steam updates playtime with delay                          |
 
 Debug mode: enable in Settings or set `DEBUG=true`.
 
@@ -200,11 +205,17 @@ Debug mode: enable in Settings or set `DEBUG=true`.
 
 ## Development
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:c36a8a49b20710122815952206271e26c6ceb52cb2c43747a81392b675df1cfe -->
+
 ```bash
-npm test          # run tests (19)
+npm test          # run tests
 npm run lint      # eslint
 npm run validate  # lint + tests
 ```
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ---
 

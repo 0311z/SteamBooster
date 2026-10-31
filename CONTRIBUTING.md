@@ -89,6 +89,7 @@ git commit -m "docs: update README with new features"
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -129,21 +130,21 @@ npm run format
 ```javascript
 // ✅ Good
 async function loginAccount(account) {
-    if (!account || !account.username) {
-        throw new Error('Invalid account');
-    }
-    
-    try {
-        await client.logOn(account);
-    } catch (err) {
-        logger.error(`Login failed: ${err.message}`);
-        throw err;
-    }
+  if (!account || !account.username) {
+    throw new Error("Invalid account");
+  }
+
+  try {
+    await client.logOn(account);
+  } catch (err) {
+    logger.error(`Login failed: ${err.message}`);
+    throw err;
+  }
 }
 
 // ❌ Bad
 function login(acc) {
-    client.logOn(acc.username, acc.password);
+  client.logOn(acc.username, acc.password);
 }
 ```
 
@@ -166,7 +167,7 @@ function login(acc) {
  * @throws {Error} If login fails
  */
 async function loginAccount(account) {
-    // Implementation
+  // Implementation
 }
 ```
 
@@ -192,23 +193,23 @@ npm run test:watch
 
 ```javascript
 // tests/login.test.js
-const { loginAccount } = require('../src/accountHandler');
+const { loginAccount } = require("../src/accountHandler");
 
-describe('Login', () => {
-    it('should login with valid credentials', async () => {
-        const account = {
-            username: 'test',
-            password: 'pass'
-        };
-        
-        await expect(loginAccount(account)).resolves.not.toThrow();
-    });
-    
-    it('should reject invalid credentials', async () => {
-        const account = { username: '', password: '' };
-        
-        await expect(loginAccount(account)).rejects.toThrow();
-    });
+describe("Login", () => {
+  it("should login with valid credentials", async () => {
+    const account = {
+      username: "test",
+      password: "pass",
+    };
+
+    await expect(loginAccount(account)).resolves.not.toThrow();
+  });
+
+  it("should reject invalid credentials", async () => {
+    const account = { username: "", password: "" };
+
+    await expect(loginAccount(account)).rejects.toThrow();
+  });
 });
 ```
 
@@ -230,24 +231,29 @@ When creating a PR, include:
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 How has this been tested?
 
 ## Checklist
+
 - [ ] Tests pass
 - [ ] Lint passes
 - [ ] Documentation updated
 - [ ] No breaking changes (or documented)
 
 ## Related Issues
+
 Closes #123
 ```
 
