@@ -14,6 +14,7 @@ function buildSnapshot(booster) {
       const d = clients.get(name);
       accounts.push({
         username: name,
+        session: d?.playSession?.snapshot() || null,
         state: st,
         active: st === "active" && !!(d && d.client && d.client.steamID),
         steamID:

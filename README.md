@@ -203,7 +203,30 @@ Debug mode: enable in Settings or set `DEBUG=true`.
 
 ---
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:d147d8e2a784cbf147d196519d5d3c62c6fd14d11e760ab8f0b28c852d0d35dd -->
+
+## Game rotation and automatic stop
+
+Optional fields in each account in `config/accounts.json`:
+
+```json
+{
+  "rotationMinutes": 30,
+  "sessionDurationMinutes": 120
+}
+```
+
+Merge these fields into your existing account object. Both default to `0` (disabled) and accept whole minutes from 0 to 10080. With rotation enabled, unique game IDs are split into batches of at most 32. Each batch plays for the configured interval, then the next batch starts; the sequence repeats. Rotation distributes time across batches, so each game receives only its batch's active time. Steam remains responsible for credited playtime.
+
+The duration limit logs the account off and marks it `completed`, without scheduling an automatic reconnect. It counts time since the latest successful login; reconnecting or manually starting a new session resets the duration and rotation. Disconnects and kicks cancel pending rotation and completion timers.
+
+The optional local `/status` monitor includes each active account's current games, batch number, batch count, elapsed seconds and remaining seconds (`null` when unlimited), under `session`. No password or token is included.
+
 ## Development
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 <!-- coderabbit-ai-generated:v1 -->
 

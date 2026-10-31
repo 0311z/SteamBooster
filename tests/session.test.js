@@ -232,3 +232,32 @@ test("a login error cancels a pending phone approval", async () => {
   session.emit("authenticated");
   expect(config.saveRefreshToken).not.toHaveBeenCalled();
 });
+
+test("duration completion logs off without automatically reconnecting", async () => {
+  const booster = new SteamBooster();
+  booster.isBoosting = true;
+  const result = booster.loginAccount({
+    ...account,
+    sessionDurationMinutes: 1,
+  });
+  const client = SteamUser.instances[0];
+  const logOff = jest.spyOn(client, "logOff");
+  client.emit("loggedOn");
+  expect(await result).toBe(true);
+  const timer = booster.clients.get(account.username).timer;
+  const snapshot = require("../utils/monitor").buildSnapshot(booster);
+  expect(snapshot.accounts[0].session).toMatchObject({
+    games: [730],
+    batch: 1,
+    batches: 1,
+    remainingSeconds: 60,
+  });
+  expect(JSON.stringify(snapshot)).not.toContain(account.password);
+  jest.advanceTimersByTime(60000);
+  expect(logOff).toHaveBeenCalledTimes(1);
+  expect(timer.stop).toHaveBeenCalled();
+  expect(booster.accountStates.get(account.username)).toBe("completed");
+  client.emit("disconnected", 0);
+  jest.advanceTimersByTime(5000);
+  expect(SteamUser.instances).toHaveLength(1);
+});

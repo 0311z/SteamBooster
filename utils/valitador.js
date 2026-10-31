@@ -45,6 +45,14 @@ function validateAccount(account) {
   ) {
     errors.push("Shared secret too short");
   }
+  for (const field of ["rotationMinutes", "sessionDurationMinutes"]) {
+    const value = account[field];
+    if (
+      value !== undefined &&
+      (!Number.isInteger(value) || value < 0 || value > 10080)
+    )
+      errors.push(`${field} must be an integer from 0 to 10080`);
+  }
   return { valid: errors.length === 0, errors };
 }
 function validateSettings(settings) {

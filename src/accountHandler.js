@@ -25,6 +25,7 @@ const {
 const singleInstance = require("../utils/singleInstance");
 const { probePresence } = require("./sessionWatch");
 const monitor = require("../utils/monitor");
+const { startPlaySession } = require("../utils/playSession");
 
 const ROOT = path.join(__dirname, "..");
 
@@ -280,6 +281,7 @@ class SteamBooster {
         logger.warn(`[${name}] Health tick: session dead, reconnecting...`);
         const acc = data.account;
         try {
+          data.playSession?.stop();
           data.timer && data.timer.stop();
         } catch {}
         this.clients.delete(name);
@@ -306,6 +308,7 @@ class SteamBooster {
     try {
       data && data.timer && data.timer.stop();
     } catch {}
+    data?.playSession?.stop();
     this.clients.delete(accName);
     this.accountStates.set(accName, "kicked");
     this.kicked.set(accName, {
@@ -898,7 +901,13 @@ class SteamBooster {
         all.splice(idx, 1);
         config.saveAccounts(all);
         config.clearRefreshToken(acc.username);
+        const active = this.clients.get(acc.username);
+        active?.playSession?.stop();
+        active?.timer?.stop();
         this.clients.delete(acc.username);
+        try {
+          active?.client?.logOff();
+        } catch {}
         this.accountStates.delete(acc.username);
         this.accountErrors.delete(acc.username);
         this.kicked.delete(acc.username);
@@ -1063,6 +1072,12 @@ class SteamBooster {
   async loginAccount(account) {
     const accName = account.username;
     const settings = config.loadSettings();
+    const validation = validateAccountStrict(account);
+    if (!validation.valid) {
+      this.accountErrors.set(accName, validation.errors.join("; "));
+      this.accountStates.set(accName, "error");
+      return false;
+    }
     return new Promise((resolve) => {
       let client = null;
       let timer = new Timer();
@@ -1379,6 +1394,7 @@ class SteamBooster {
             `[${accName}] ${gameIds.length} games configured; Steam only counts the first ~32 in a single session. Consider splitting accounts.`,
           );
         const games = gameIds.length ? gameIds : [730];
+        let playSession;
         try {
           client.setPersona(
             settings.invisibleMode || account.invisible
@@ -1386,11 +1402,43 @@ class SteamBooster {
               : SteamUser.EPersonaState.Online,
             statusStr || undefined,
           );
-          client.gamesPlayed(games);
+          const complete = (state) => {
+            if (this.clients.get(accName)?.client !== client) return;
+            timer.stop();
+            this.clients.delete(accName);
+            this.accountStates.set(accName, state);
+            try {
+              client.logOff();
+            } catch (err) {
+              logger.warn(`[${accName}] Logoff failed: ${err.message}`);
+            }
+          };
+          playSession = startPlaySession({
+            client,
+            games,
+            rotationMinutes: account.rotationMinutes ?? 0,
+            durationMinutes: account.sessionDurationMinutes ?? 0,
+            onComplete: () => {
+              complete("completed");
+              logger.success(`[${accName}] Session duration reached`);
+            },
+            onError: (err) => {
+              complete("error");
+              logger.error(`[${accName}] Game rotation failed: ${err.message}`);
+            },
+          });
         } catch (e) {
-          logger.warn(`[${accName}] gamesPlayed failed: ${e && e.message}`);
+          finish(false, `Could not start games: ${e && e.message}`);
+          return;
         }
-        const entry = { account, client, timer, games, state: "active" };
+        const entry = {
+          account,
+          client,
+          timer,
+          games,
+          playSession,
+          state: "active",
+        };
         this.clients.set(accName, entry);
         this.accountStates.set(accName, "active");
         this.reconnects.set(accName, 0);
@@ -1418,6 +1466,7 @@ class SteamBooster {
           this.accountStates.set(accName, "disconnected");
           const dd = this.clients.get(accName);
           if (dd && dd.timer) dd.timer.stop();
+          dd?.playSession?.stop();
           this.clients.delete(accName);
           setTimeout(() => {
             if (this.isBoosting) this.loginAccount(account);
@@ -1485,6 +1534,7 @@ class SteamBooster {
           this.accountStates.set(accName, "disconnected");
           const data = this.clients.get(accName);
           if (data && data.timer) data.timer.stop();
+          data?.playSession?.stop();
           this.clients.delete(accName);
           const n = (this.reconnects.get(accName) || 0) + 1;
           const max = Number.isInteger(settings.maxReconnectAttempts)
@@ -1536,6 +1586,7 @@ class SteamBooster {
     this.stopWatchdog();
     for (const [, data] of this.clients.entries()) {
       try {
+        data.playSession?.stop();
         data.timer && data.timer.stop();
       } catch {}
       try {
